@@ -1,4 +1,4 @@
-# @eden-labs/core
+# @eden_labs/core
 
 Event manager for the Eden ecosystem. Fast, reliable event bus over raw UDP with at-least-once delivery guarantees.
 
@@ -20,7 +20,7 @@ Events are sent as UDP packets. The emitter retries automatically if no ACK arri
 ## Quick start
 
 ```ts
-import { Eden } from "@eden-labs/core";
+import { Eden } from "@eden_labs/core";
 
 const a = new Eden({
   listenPort: 5000,
@@ -171,7 +171,7 @@ All errors extend `EdenError`:
 | `EdenInvalidEnvelopeError` | Received message is not valid JSON or missing required fields |
 
 ```ts
-import { EdenError, EdenInvalidEventTypeError } from "@eden-labs/core";
+import { EdenError, EdenInvalidEventTypeError } from "@eden_labs/core";
 
 try {
   eden.emit("bad-type", {});

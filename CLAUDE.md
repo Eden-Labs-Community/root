@@ -155,7 +155,7 @@ src/
 ---
 
 ## Distribuição
-- `@eden-labs/core` — NPM público, ESM, TypeScript com exports de tipos
+- `@eden_labs/core` — NPM público, ESM, TypeScript com exports de tipos
 - SDKs para outras linguagens = repos separados implementando o mesmo protocolo de envelope
 
 ---
