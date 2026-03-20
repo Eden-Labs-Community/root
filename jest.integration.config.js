@@ -17,7 +17,5 @@ export default {
       },
     ],
   },
-  testMatch: ["**/src/__tests__/**/*.test.ts"],
-  testPathIgnorePatterns: ["/node_modules/", "/src/__tests__/integration/"],
-  collectCoverageFrom: ["src/**/*.ts", "!src/__tests__/**"],
+  testMatch: ["**/src/__tests__/integration/**/*.test.ts"],
 };

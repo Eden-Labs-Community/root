@@ -20,3 +20,17 @@ export class EdenInvalidEnvelopeError extends EdenError {
     this.name = "EdenInvalidEnvelopeError";
   }
 }
+
+export class EdenStunTimeoutError extends EdenError {
+  constructor(servers: string[]) {
+    super(`STUN discovery timed out. Tried: ${servers.join(", ")}`);
+    this.name = "EdenStunTimeoutError";
+  }
+}
+
+export class EdenSignalingError extends EdenError {
+  constructor(reason: string) {
+    super(`Signaling error: ${reason}`);
+    this.name = "EdenSignalingError";
+  }
+}
