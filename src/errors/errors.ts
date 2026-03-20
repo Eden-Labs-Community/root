@@ -27,3 +27,10 @@ export class EdenStunTimeoutError extends EdenError {
     this.name = "EdenStunTimeoutError";
   }
 }
+
+export class EdenSignalingError extends EdenError {
+  constructor(reason: string) {
+    super(`Signaling error: ${reason}`);
+    this.name = "EdenSignalingError";
+  }
+}

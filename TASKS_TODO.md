@@ -70,7 +70,7 @@ Implementar cliente que descobre o endpoint público via servidor STUN.
 ## Fase 3 — Signaling
 
 ### TASK-005 — Signaling Client (`signaling-client.ts`)
-**Status:** `[ ] next`
+**Status:** `[x] done`
 
 Troca de endpoints entre dois peers via servidor de sinalização leve.
 O signaling server é um Eden node com IP público — não toca nos dados, só coordena a descoberta inicial.
@@ -88,7 +88,7 @@ O signaling server é um Eden node com IP público — não toca nos dados, só 
 ## Fase 4 — Hole Punching
 
 ### TASK-006 — Hole Puncher (`hole-puncher.ts`)
-**Status:** `[ ] pending`
+**Status:** `[x] done`
 
 Coordena o envio simultâneo de pacotes UDP para abrir o NAT dos dois lados.
 Ambos os peers enviam ao mesmo tempo (via timestamp do signaling), criando entradas NAT simétricas.
@@ -108,7 +108,7 @@ Ambos os peers enviam ao mesmo tempo (via timestamp do signaling), criando entra
 ## Fase 5 — Relay Fallback
 
 ### TASK-007 — Relay Client (`relay-client.ts`)
-**Status:** `[ ] pending`
+**Status:** `[x] done`
 
 Proxy transparente via Eden node com IP público quando hole punching falha (~15% dos casos de NAT simétrico estrito).
 
@@ -124,7 +124,7 @@ Proxy transparente via Eden node com IP público quando hole punching falha (~15
 ## Fase 6 — P2P Transport
 
 ### TASK-008 — `P2PTransport` orquestrador
-**Status:** `[ ] pending`
+**Status:** `[x] done`
 
 Junta STUN + Signaling + HolePuncher + RelayClient em um único `EdenTransport`.
 
@@ -194,12 +194,12 @@ Validar que o P2PTransport compete com soluções de mercado (ENet, GameNetworki
 | TASK-002 | `UdpTransport` + migração | `[x] done` |
 | TASK-003 | STUN message builder/parser (RFC 5389) | `[x] done` |
 | TASK-004 | `StunClient` — discover endpoint público | `[x] done` |
-| TASK-005 | Signaling client (WebSocket) | `[ ] next` |
-| TASK-006 | Hole puncher | `[ ] pending` |
-| TASK-007 | Relay client (fallback) | `[ ] pending` |
-| TASK-008 | `P2PTransport` orquestrador | `[ ] pending` |
+| TASK-005 | Signaling client (WebSocket) | `[x] done` |
+| TASK-006 | Hole puncher | `[x] done` |
+| TASK-007 | Relay client (fallback) | `[x] done` |
+| TASK-008 | `P2PTransport` orquestrador | `[x] done` |
 | TASK-009 | Eden integration | `[~] partial` |
 | TASK-010 | Exports públicos | `[ ] pending` |
 | TASK-011 | Benchmark | `[ ] pending` |
 
-**Testes:** 65 passando / 0 falhando
+**Testes:** 83 passando / 0 falhando
