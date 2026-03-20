@@ -20,3 +20,10 @@ export class EdenInvalidEnvelopeError extends EdenError {
     this.name = "EdenInvalidEnvelopeError";
   }
 }
+
+export class EdenStunTimeoutError extends EdenError {
+  constructor(servers: string[]) {
+    super(`STUN discovery timed out. Tried: ${servers.join(", ")}`);
+    this.name = "EdenStunTimeoutError";
+  }
+}
