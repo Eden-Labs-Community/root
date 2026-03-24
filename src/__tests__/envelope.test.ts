@@ -27,4 +27,41 @@ describe("Envelope", () => {
     expect(() => createEnvelope({ type: "", payload: {} }))
       .toThrow(EdenInvalidEventTypeError);
   });
+
+  it("creates envelope with ttl and origin", () => {
+    const envelope = createEnvelope({
+      type: "eden:chat:message",
+      payload: {},
+      ttl: 10,
+      origin: "peer-abc",
+    });
+    expect(envelope.ttl).toBe(10);
+    expect(envelope.origin).toBe("peer-abc");
+  });
+
+  it("creates envelope without ttl and origin (backward compatible)", () => {
+    const envelope = createEnvelope({ type: "eden:chat:message", payload: {} });
+    expect(envelope.ttl).toBeUndefined();
+    expect(envelope.origin).toBeUndefined();
+  });
+
+  it("creates envelope with only ttl", () => {
+    const envelope = createEnvelope({
+      type: "eden:chat:message",
+      payload: {},
+      ttl: 5,
+    });
+    expect(envelope.ttl).toBe(5);
+    expect(envelope.origin).toBeUndefined();
+  });
+
+  it("creates envelope with only origin", () => {
+    const envelope = createEnvelope({
+      type: "eden:chat:message",
+      payload: {},
+      origin: "peer-xyz",
+    });
+    expect(envelope.ttl).toBeUndefined();
+    expect(envelope.origin).toBe("peer-xyz");
+  });
 });

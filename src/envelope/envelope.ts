@@ -10,10 +10,12 @@ export interface EventEnvelope {
   timestamp: number;
   version: string;
   room?: string;
+  ttl?: number;
+  origin?: string;
 }
 
 export function createEnvelope(
-  input: Pick<EventEnvelope, "type" | "payload" | "room">
+  input: Pick<EventEnvelope, "type" | "payload" | "room" | "ttl" | "origin">
 ): EventEnvelope {
   if (!EVENT_TYPE_REGEX.test(input.type)) {
     throw new EdenInvalidEventTypeError(input.type);
@@ -29,6 +31,14 @@ export function createEnvelope(
 
   if (input.room !== undefined) {
     envelope.room = input.room;
+  }
+
+  if (input.ttl !== undefined) {
+    envelope.ttl = input.ttl;
+  }
+
+  if (input.origin !== undefined) {
+    envelope.origin = input.origin;
   }
 
   return envelope;
