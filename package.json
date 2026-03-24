@@ -49,6 +49,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "tweetnacl": "^1.0.3",
     "uuid": "^13.0.0",
     "ws": "^8.19.0"
   }
