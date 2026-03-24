@@ -15,21 +15,23 @@ describe("MultiP2PTransport", () => {
         resolve();
       });
 
-      const peers = new Map<string, { endpoint: { host: string; port: number }; ws: WebSocket }>();
+      const peers = new Map<string, { endpoint: { host: string; port: number }; ws: WebSocket; publicKey?: string }>();
 
       signalingServer.on("connection", (ws: WebSocket) => {
         ws.on("message", (data: Buffer) => {
           const msg = JSON.parse(data.toString());
 
           if (msg.type === "register") {
-            peers.set(msg.peerId, { endpoint: msg.endpoint, ws });
+            peers.set(msg.peerId, { endpoint: msg.endpoint, ws, publicKey: msg.publicKey });
             ws.send(JSON.stringify({ type: "registered" }));
           }
 
           if (msg.type === "request_connect") {
             const peer = peers.get(msg.targetId);
             if (peer) {
-              ws.send(JSON.stringify({ type: "peer_endpoint", endpoint: peer.endpoint }));
+              const resp: Record<string, unknown> = { type: "peer_endpoint", endpoint: peer.endpoint };
+              if (peer.publicKey) resp["publicKey"] = peer.publicKey;
+              ws.send(JSON.stringify(resp));
             } else {
               ws.send(JSON.stringify({ type: "error", reason: "peer_not_found" }));
             }
@@ -525,6 +527,55 @@ describe("MultiP2PTransport", () => {
 
     // Existing peer still works
     expect(tA.getPeerCount()).toBe(1);
+
+    tA.close();
+    tB.close();
+  }, 8000);
+
+  it("addPeer stores publicKey from signaling", async () => {
+    const url = `ws://127.0.0.1:${signalingPort}`;
+    const tA = new MultiP2PTransport(testOpts);
+    const tB = new MultiP2PTransport(testOpts);
+
+    tA.bind(0, () => {});
+    tB.bind(0, () => {});
+
+    // tB registers with publicKey
+    await Promise.all([
+      tA.addPeer("pk-a", "pk-b", url, "aabb1122"),
+      tB.addPeer("pk-b", "pk-a", url, "ccdd3344"),
+    ]);
+
+    // tA should have tB's publicKey
+    expect(tA.getPublicKey("pk-b")).toBe("ccdd3344");
+    // tB should have tA's publicKey
+    expect(tB.getPublicKey("pk-a")).toBe("aabb1122");
+
+    tA.close();
+    tB.close();
+  }, 8000);
+
+  it("getPublicKey returns null for unknown peer", () => {
+    const t = new MultiP2PTransport(testOpts);
+    expect(t.getPublicKey("nonexistent")).toBeNull();
+  });
+
+  it("removePeer clears publicKey", async () => {
+    const url = `ws://127.0.0.1:${signalingPort}`;
+    const tA = new MultiP2PTransport(testOpts);
+    const tB = new MultiP2PTransport(testOpts);
+
+    tA.bind(0, () => {});
+    tB.bind(0, () => {});
+
+    await Promise.all([
+      tA.addPeer("pkrm-a", "pkrm-b", url, "aabb"),
+      tB.addPeer("pkrm-b", "pkrm-a", url, "ccdd"),
+    ]);
+
+    expect(tA.getPublicKey("pkrm-b")).toBe("ccdd");
+    tA.removePeer("pkrm-b");
+    expect(tA.getPublicKey("pkrm-b")).toBeNull();
 
     tA.close();
     tB.close();

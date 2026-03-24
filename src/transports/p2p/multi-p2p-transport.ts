@@ -54,6 +54,7 @@ export class MultiP2PTransport implements EdenTransport {
   private bindPromise: Promise<void> | null = null;
   private publicEndpoint: Endpoint | null = null;
   private readonly peers = new Map<string, PeerState>();
+  private readonly peerPublicKeys = new Map<string, string>();
   private sentinel: SignalingSentinel | null = null;
   private election: SentinelElection | null = null;
   private myId: string | null = null;
@@ -104,7 +105,7 @@ export class MultiP2PTransport implements EdenTransport {
     this.publicEndpoint = null;
   }
 
-  async addPeer(myId: string, targetId: string, signalingUrl: string): Promise<void> {
+  async addPeer(myId: string, targetId: string, signalingUrl: string, publicKey?: string): Promise<void> {
     if (!this.socket) throw new Error("Must call bind() before addPeer()");
 
     const maxPeers = this.options.maxPeers ?? 10;
@@ -150,9 +151,10 @@ export class MultiP2PTransport implements EdenTransport {
       timeoutMs: this.options.signalingTimeoutMs ?? 5000,
     });
 
-    await signaling.register(myId, { host: publicHost, port: localPort });
+    await signaling.register(myId, { host: publicHost, port: localPort }, publicKey);
 
     let remoteEndpoint: Endpoint | null = null;
+    let peerPublicKey: string | undefined;
     const maxRetries = 5;
     const retryDelayMs = 200;
 
@@ -160,6 +162,7 @@ export class MultiP2PTransport implements EdenTransport {
       try {
         const result = await signaling.requestConnect(myId, targetId);
         remoteEndpoint = result.endpoint;
+        peerPublicKey = result.publicKey;
         break;
       } catch {
         if (i < maxRetries - 1) {
@@ -192,6 +195,10 @@ export class MultiP2PTransport implements EdenTransport {
       this.peers.set(targetId, { mode: "direct", endpoint: remoteEndpoint });
     } else {
       await this.setupRelay(myId, targetId, signalingUrl);
+    }
+
+    if (peerPublicKey !== undefined) {
+      this.peerPublicKeys.set(targetId, peerPublicKey);
     }
 
     // Track state for election
@@ -228,6 +235,7 @@ export class MultiP2PTransport implements EdenTransport {
     const peer = this.peers.get(peerId);
     if (peer?.mode === "relay") peer.relay.close();
     this.peers.delete(peerId);
+    this.peerPublicKeys.delete(peerId);
     this.election?.peerRemoved(peerId);
     if (this.peers.size === 0) {
       this.election?.stop();
@@ -237,6 +245,10 @@ export class MultiP2PTransport implements EdenTransport {
 
   getPeerCount(): number {
     return this.peers.size;
+  }
+
+  getPublicKey(peerId: string): string | null {
+    return this.peerPublicKeys.get(peerId) ?? null;
   }
 
   getSentinel(): SignalingSentinel | null {
