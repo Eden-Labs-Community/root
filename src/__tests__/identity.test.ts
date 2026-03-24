@@ -1,4 +1,5 @@
 import { createIdentity, derivePeerId } from "../crypto/identity.js";
+import { encrypt, decrypt } from "../crypto/box.js";
 import nacl from "tweetnacl";
 import { mkdtemp, readFile, stat, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -82,5 +83,48 @@ describe("derivePeerId", () => {
     const a = nacl.box.keyPair();
     const b = nacl.box.keyPair();
     expect(derivePeerId(a.publicKey)).not.toBe(derivePeerId(b.publicKey));
+  });
+});
+
+describe("encrypt + identity integration", () => {
+  let tmpDir: string;
+
+  beforeEach(async () => {
+    tmpDir = await mkdtemp(join(tmpdir(), "eden-int-"));
+  });
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it("keys from createIdentity work with encrypt/decrypt", async () => {
+    const alicePath = join(tmpDir, "alice.json");
+    const bobPath = join(tmpDir, "bob.json");
+    const alice = await createIdentity({ path: alicePath });
+    const bob = await createIdentity({ path: bobPath });
+
+    const msg = Buffer.from("hello from alice");
+    const cipher = encrypt(msg, bob.publicKey, alice.secretKey);
+    const plain = decrypt(cipher, alice.publicKey, bob.secretKey);
+    expect(plain).not.toBeNull();
+    expect(Buffer.from(plain!).toString()).toBe("hello from alice");
+  });
+
+  it("two distinct key pairs exchange messages bidirectionally", async () => {
+    const alice = await createIdentity({ path: join(tmpDir, "a.json") });
+    const bob = await createIdentity({ path: join(tmpDir, "b.json") });
+
+    const c1 = encrypt(Buffer.from("A→B"), bob.publicKey, alice.secretKey);
+    const c2 = encrypt(Buffer.from("B→A"), alice.publicKey, bob.secretKey);
+
+    expect(Buffer.from(decrypt(c1, alice.publicKey, bob.secretKey)!).toString()).toBe("A→B");
+    expect(Buffer.from(decrypt(c2, bob.publicKey, alice.secretKey)!).toString()).toBe("B→A");
+  });
+
+  it("derived peerId is consistent across calls", async () => {
+    const idPath = join(tmpDir, "id.json");
+    const id1 = await createIdentity({ path: idPath });
+    const id2 = await createIdentity({ path: idPath });
+    expect(derivePeerId(id1.publicKey)).toBe(derivePeerId(id2.publicKey));
   });
 });
