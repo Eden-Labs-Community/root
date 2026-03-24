@@ -64,6 +64,21 @@ Classes de erro do ecossistema Eden.
 - `EdenSignalingError` — servidor de sinalização retornou erro ou timeout
 - `EdenSentinelError` — erro de conexão/operação do sentinel
 
+### `crypto/box.ts`
+Primitivas de criptografia stateless com NaCl box (Curve25519 + XSalsa20 + Poly1305).
+- `encrypt(plaintext, theirPublicKey, mySecretKey)` → `Uint8Array` com `[ nonce (24 bytes) | ciphertext ]`
+- `decrypt(box, theirPublicKey, mySecretKey)` → `Uint8Array | null`
+- Nonce aleatório a cada chamada (não determinístico)
+- Retorna `null` para chave errada, buffer corrompido ou buffer < 24 bytes
+- **Dependência:** `tweetnacl`
+
+### `crypto/identity.ts`
+Geração e persistência de par de chaves + derivação determinística de peerId.
+- `createIdentity({ path? })` → `Promise<Identity>` — gera ou carrega `{ publicKey, secretKey }`
+- Default path: `~/.eden/identity.json` — diretório com `0o700`, arquivo com `0o600`
+- Chaves salvas como hex no JSON; segunda chamada retorna as mesmas chaves (persistência)
+- `derivePeerId(publicKey)` → SHA-256 hex string (64 chars) — determinístico
+
 ### `envelope/envelope.ts`
 Fábrica e tipo do `EventEnvelope`. Valida o formato do tipo antes de criar.
 - `createEnvelope({ type, payload, room? })` → `EventEnvelope`
@@ -318,6 +333,9 @@ src/
   stun/
     stun-message.ts           ← RFC 5389 builder/parser
     stun-client.ts            ← descobre endpoint público
+  crypto/
+    box.ts                    ← encrypt/decrypt NaCl box (Curve25519 + XSalsa20 + Poly1305)
+    identity.ts               ← createIdentity + derivePeerId (SHA-256)
   signaling/
     signaling-client.ts       ← WebSocket para troca de endpoints
     signaling-sentinel.ts     ← conexão persistente com signaling (reconexão automática)
@@ -406,6 +424,13 @@ Overhead do hole punch pós-conexão é negligenciável. Relay tem ~2× overhead
 - [x] `MultiP2PTransport.bind()` filtra heartbeats antes de entregar ao app (mesmo padrão de `PROBE_MAGIC` e `STUN_MAGIC_COOKIE`)
 - [x] `removePeer()` com `peers.size === 0` para election — mesh morta, sem sentido ser sentinel
 - [x] `onPromoted` cria `SignalingSentinel`; `onDemoted` destrói — sentinel só existe no peer ativo
+
+### Criptografia
+- [x] NaCl box (Curve25519 + XSalsa20 + Poly1305) via `tweetnacl` — zero deps nativas
+- [x] Formato: `[ nonce (24 bytes) | ciphertext ]` — nonce aleatório a cada chamada
+- [x] `decrypt` retorna `null` (não lança) para chave errada, buffer corrompido ou < 24 bytes
+- [x] `createIdentity` persiste par de chaves em `~/.eden/identity.json` com permissões seguras (dir 0o700, file 0o600)
+- [x] `derivePeerId` = SHA-256 hex da publicKey — determinístico, 64 chars
 
 ### Multi-linguagem
 - [x] SDKs para outras linguagens = repos separados com mesmo protocolo de envelope

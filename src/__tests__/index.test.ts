@@ -11,8 +11,12 @@ import {
   SignalingSentinel,
   SentinelElection,
   SENTINEL_HEARTBEAT_MAGIC,
+  encrypt,
+  decrypt,
+  createIdentity,
+  derivePeerId,
 } from "../index.js";
-import type { EventEnvelope, EdenTransport, Endpoint } from "../index.js";
+import type { EventEnvelope, EdenTransport, Endpoint, Identity } from "../index.js";
 
 describe("public API", () => {
   it("exports Eden", () => expect(Eden).toBeDefined());
@@ -69,5 +73,18 @@ describe("public API", () => {
   it("exports SentinelElection", () => expect(SentinelElection).toBeDefined());
   it("exports SENTINEL_HEARTBEAT_MAGIC", () => {
     expect(SENTINEL_HEARTBEAT_MAGIC).toBe("__EDEN_SENTINEL_HB__\n");
+  });
+
+  it("exports encrypt", () => expect(encrypt).toBeDefined());
+  it("exports decrypt", () => expect(decrypt).toBeDefined());
+  it("exports createIdentity", () => expect(createIdentity).toBeDefined());
+  it("exports derivePeerId", () => expect(derivePeerId).toBeDefined());
+
+  it("Identity type is usable", () => {
+    const identity: Identity = {
+      publicKey: new Uint8Array(32),
+      secretKey: new Uint8Array(32),
+    };
+    expect(identity.publicKey.length).toBe(32);
   });
 });

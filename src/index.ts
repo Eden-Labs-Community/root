@@ -17,5 +17,9 @@ export { MultiP2PTransport } from "./transports/p2p/multi-p2p-transport.js";
 export { SignalingSentinel } from "./signaling/signaling-sentinel.js";
 export { SentinelElection, SENTINEL_HEARTBEAT_MAGIC } from "./sentinel/sentinel-election.js";
 
+export { encrypt, decrypt } from "./crypto/box.js";
+export { createIdentity, derivePeerId } from "./crypto/identity.js";
+export type { Identity } from "./crypto/identity.js";
+
 export type { EdenTransport, Endpoint } from "./transports/transport.js";
 export type { EventEnvelope } from "./envelope/envelope.js";
